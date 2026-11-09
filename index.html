@@ -90,6 +90,17 @@
       font-style: italic;
     }
 
+    .connection-status {
+      margin-top: 30px;
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+      color: #817c6e;
+    }
+
+    .connection-status:empty {
+      display: none;
+    }
+
     @media (max-width: 480px) {
       .invitation {
         padding: 48px 24px 64px;
@@ -105,7 +116,7 @@
 <body>
   <main class="invitation">
 
-    <div class="date">
+    <div class="date" id="event-date">
       12 июня 2027 года
     </div>
 
@@ -133,21 +144,128 @@
       <h2>Будем рады вас видеть</h2>
 
       <p>
-        12 июня 2027 года<br>
-        Начало в 16:00
+        <span id="details-date">12 июня 2027 года</span><br>
+        Начало в <span id="event-time">16:00</span>
       </p>
 
       <p>
         Место проведения<br>
-        Информация появится позже
+        <span id="event-venue">Информация появится позже</span>
       </p>
 
       <div class="signature">
         С любовью,<br>
         Александр и Мария
       </div>
+
+      <div class="connection-status" id="connection-status"></div>
     </section>
 
   </main>
+
+  <!-- Библиотека Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script>
+    // НАСТРОЙКИ SUPABASE
+
+    const SUPABASE_URL = 'https://ltdrogwrxznbnxypjvhu.supabase.co';
+
+    const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable__sjc8LE7R5OdtitcPHKMJw_wl5eM8gu';
+
+    // Создание подключения
+
+    const supabase = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_PUBLISHABLE_KEY
+    );
+
+    // Форматирование даты
+
+    function formatDate(dateString) {
+      if (!dateString) return null;
+
+      const date = new Date(dateString + 'T12:00:00');
+
+      return new Intl.DateTimeFormat('ru-RU', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      }).format(date);
+    }
+
+    // Загрузка приглашения
+
+    async function loadInvitation() {
+
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get('token');
+
+      // Если персонального токена нет,
+      // оставляем демонстрационные данные.
+
+      if (!token) return;
+
+      const status = document.getElementById('connection-status');
+
+      try {
+
+        const { data, error } = await supabase.rpc(
+          'get_invitation',
+          {
+            p_token: token
+          }
+        );
+
+        if (error) throw error;
+
+        if (!data || !data.event) {
+          throw new Error('Приглашение не найдено');
+        }
+
+        const event = data.event;
+
+        // Дата мероприятия
+
+        if (event.date) {
+          const date = formatDate(event.date);
+
+          document.getElementById('event-date').textContent = date;
+          document.getElementById('details-date').textContent = date;
+        }
+
+        // Время мероприятия
+
+        if (event.time) {
+          document.getElementById('event-time').textContent =
+            String(event.time).slice(0, 5);
+        }
+
+        // Место проведения
+
+        if (event.venue) {
+          document.getElementById('event-venue').textContent =
+            event.venue;
+        }
+
+        status.textContent = '';
+
+        console.log('EventFlow: приглашение загружено', data);
+
+      } catch (error) {
+
+        console.error('EventFlow error:', error);
+
+        status.textContent =
+          'Не удалось загрузить данные приглашения. Проверьте ссылку.';
+
+      }
+    }
+
+    // Запуск
+
+    loadInvitation();
+  </script>
+
 </body>
 </html>
