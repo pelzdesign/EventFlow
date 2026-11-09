@@ -227,27 +227,27 @@
 
         // Дата мероприятия
 
-        if (event.date) {
-          const date = formatDate(event.date);
+        if (event.event_date) {
+          const date = formatDate(event.event_date);
 
           document.getElementById('event-date').textContent = date;
           document.getElementById('details-date').textContent = date;
         }
-
+        
         // Время мероприятия
-
-        if (event.time) {
+        
+        if (event.event_time) {
           document.getElementById('event-time').textContent =
-            String(event.time).slice(0, 5);
+            String(event.event_time).slice(0, 5);
         }
-
+        
         // Место проведения
-
+        
         if (event.venue_name) {
           document.getElementById('event-venue').textContent =
             event.venue_name;
         }
-
+        
         status.textContent = '';
 
         console.log('EventFlow: приглашение загружено', data);
