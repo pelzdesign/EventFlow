@@ -169,13 +169,21 @@
   <script>
     // НАСТРОЙКИ SUPABASE
 
-    const SUPABASE_URL = 'https://ltdrogwrxznbnxypjvhu.supabase.co';
+    const SUPABASE_URL =
+      'https://ltdrogwrxznbnxypjvhu.supabase.co';
 
-    const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable__sjc8LE7R5OdtitcPHKMJw_wl5eM8gu';
+    const SUPABASE_PUBLISHABLE_KEY =
+      'sb_publishable__sjc8LE7R5OdtitcPHKMJw_wl5eM8gu';
+
+    // Проверка библиотеки
+
+    if (!window.supabase) {
+      throw new Error('Библиотека Supabase не загружена');
+    }
 
     // Создание подключения
 
-    const supabase = window.supabase.createClient(
+    const supabaseClient = window.supabase.createClient(
       SUPABASE_URL,
       SUPABASE_PUBLISHABLE_KEY
     );
@@ -210,7 +218,7 @@
 
       try {
 
-        const { data, error } = await supabase.rpc(
+        const { data, error } = await supabaseClient.rpc(
           'get_invitation',
           {
             p_token: token
@@ -233,21 +241,21 @@
           document.getElementById('event-date').textContent = date;
           document.getElementById('details-date').textContent = date;
         }
-        
+
         // Время мероприятия
-        
+
         if (event.event_time) {
           document.getElementById('event-time').textContent =
             String(event.event_time).slice(0, 5);
         }
-        
+
         // Место проведения
-        
+
         if (event.venue_name) {
           document.getElementById('event-venue').textContent =
             event.venue_name;
         }
-        
+
         status.textContent = '';
 
         console.log('EventFlow: приглашение загружено', data);
