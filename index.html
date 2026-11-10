@@ -5,13 +5,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#f7f5f0">
-
   <title>Александр и Мария — приглашение</title>
 
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -334,7 +331,6 @@
 
   </main>
 
-  <!-- Библиотека Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script>
@@ -358,7 +354,7 @@
     let invitationToken = null;
     let invitationGuests = [];
 
-    // Форматирование даты
+    // ФОРМАТИРОВАНИЕ ДАТЫ
 
     function formatDate(dateString) {
       if (!dateString) return null;
@@ -372,7 +368,7 @@
       }).format(date);
     }
 
-    // Отображение гостей
+    // ОТОБРАЖЕНИЕ ГОСТЕЙ
 
     function renderGuests(guests) {
       const guestList = document.getElementById('guest-list');
@@ -385,8 +381,11 @@
 
         const guestName = document.createElement('span');
         guestName.className = 'guest-name';
+
         guestName.textContent =
-          [guest.first_name, guest.last_name].filter(Boolean).join(' ');
+          [guest.first_name, guest.last_name]
+            .filter(Boolean)
+            .join(' ');
 
         const options = document.createElement('div');
         options.className = 'guest-options';
@@ -431,7 +430,7 @@
       document.getElementById('rsvp-section').style.display = 'block';
     }
 
-    // Загрузка приглашения
+    // ЗАГРУЗКА ПРИГЛАШЕНИЯ
 
     async function loadInvitation() {
       const params = new URLSearchParams(window.location.search);
@@ -459,7 +458,7 @@
 
         const event = data.event;
 
-        // Дата
+        // ДАТА
 
         if (event.event_date) {
           const date = formatDate(event.event_date);
@@ -468,21 +467,21 @@
           document.getElementById('details-date').textContent = date;
         }
 
-        // Время
+        // ВРЕМЯ
 
         if (event.event_time) {
           document.getElementById('event-time').textContent =
             String(event.event_time).slice(0, 5);
         }
 
-        // Место
+        // МЕСТО
 
         if (event.venue_name) {
           document.getElementById('event-venue').textContent =
             event.venue_name;
         }
 
-        // Гости
+        // ГОСТИ
 
         if (!Array.isArray(data.guests) || data.guests.length === 0) {
           throw new Error('В приглашении не найдены гости');
@@ -504,7 +503,7 @@
       }
     }
 
-    // Отправка RSVP
+    // ОТПРАВКА RSVP
 
     async function submitRSVP(event) {
       event.preventDefault();
@@ -517,6 +516,8 @@
 
       const responses = [];
 
+      // Собираем ответы всех гостей
+
       for (let i = 0; i < invitationGuests.length; i++) {
         const guest = invitationGuests[i];
 
@@ -525,18 +526,23 @@
         );
 
         if (!selected) {
-          status.textContent = 'Пожалуйста, выберите ответ для каждого гостя.';
+          status.textContent =
+            'Пожалуйста, выберите ответ для каждого гостя.';
+
           status.classList.add('error');
           return;
         }
 
         responses.push({
           guest_id: guest.id,
-          attending: selected.value === 'yes'
+          attendance: selected.value
         });
-      }
 
-      const comment = document.getElementById('rsvp-comment').value.trim();
+      } // Закрываем цикл FOR
+
+      const comment = document
+        .getElementById('rsvp-comment')
+        .value.trim();
 
       button.disabled = true;
       button.textContent = 'Отправляем...';
@@ -567,7 +573,12 @@
         console.log('EventFlow: RSVP сохранён', data);
 
       } catch (error) {
-        console.error('EventFlow RSVP error:', error);
+        console.error('EventFlow RSVP error:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint
+        });
 
         if (
           error.message &&
@@ -588,16 +599,17 @@
       }
     }
 
-    // Обработчик формы
+    // ОБРАБОТЧИК ФОРМЫ
 
     document.getElementById('rsvp-form').addEventListener(
       'submit',
       submitRSVP
     );
 
-    // Запуск
+    // ЗАПУСК
 
     loadInvitation();
+
   </script>
 
 </body>
