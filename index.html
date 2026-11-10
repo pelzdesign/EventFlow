@@ -73,7 +73,8 @@
       border-top: 1px solid #dedbd2;
     }
 
-    .details h2 {
+    .details h2,
+    .rsvp h2 {
       font-size: 28px;
       font-weight: normal;
       margin-bottom: 24px;
@@ -99,6 +100,143 @@
 
     .connection-status:empty {
       display: none;
+    }
+
+    /* RSVP */
+
+    .rsvp {
+      display: none;
+      margin-top: 70px;
+      padding-top: 45px;
+      border-top: 1px solid #dedbd2;
+      text-align: left;
+    }
+
+    .rsvp h2 {
+      text-align: center;
+    }
+
+    .rsvp-intro {
+      text-align: center;
+      font-size: 16px;
+      line-height: 1.6;
+      color: #6f6a5f;
+      margin-bottom: 32px;
+    }
+
+    .guest-item {
+      padding: 20px 0;
+      border-bottom: 1px solid #e3dfd6;
+    }
+
+    .guest-name {
+      display: block;
+      font-size: 18px;
+      margin-bottom: 14px;
+    }
+
+    .guest-options {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .guest-option {
+      flex: 1;
+      min-width: 115px;
+      position: relative;
+    }
+
+    .guest-option input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .guest-option span {
+      display: block;
+      padding: 12px 10px;
+      border: 1px solid #d8d3c8;
+      border-radius: 3px;
+      text-align: center;
+      font-family: Arial, sans-serif;
+      font-size: 13px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .guest-option input:checked + span {
+      background: #292820;
+      border-color: #292820;
+      color: #fff;
+    }
+
+    .guest-option input:focus-visible + span {
+      outline: 2px solid #817c6e;
+      outline-offset: 3px;
+    }
+
+    .comment-label {
+      display: block;
+      margin: 30px 0 12px;
+      font-size: 17px;
+    }
+
+    .comment-field {
+      display: block;
+      width: 100%;
+      min-height: 100px;
+      padding: 14px;
+      border: 1px solid #d8d3c8;
+      border-radius: 3px;
+      background: #fffefa;
+      color: #292820;
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      resize: vertical;
+    }
+
+    .submit-button {
+      display: block;
+      width: 100%;
+      margin-top: 24px;
+      padding: 16px;
+      border: none;
+      border-radius: 3px;
+      background: #292820;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    .submit-button:disabled {
+      opacity: 0.55;
+      cursor: wait;
+    }
+
+    .rsvp-status {
+      margin-top: 18px;
+      text-align: center;
+      font-family: Arial, sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+      color: #817c6e;
+    }
+
+    .rsvp-status:empty {
+      display: none;
+    }
+
+    .rsvp-status.success {
+      color: #42664b;
+    }
+
+    .rsvp-status.error {
+      color: #a04438;
     }
 
     @media (max-width: 480px) {
@@ -152,14 +290,47 @@
         Место проведения<br>
         <span id="event-venue">Информация появится позже</span>
       </p>
-
-      <div class="signature">
-        С любовью,<br>
-        Александр и Мария
-      </div>
-
-      <div class="connection-status" id="connection-status"></div>
     </section>
+
+    <!-- RSVP -->
+
+    <section class="rsvp" id="rsvp-section">
+      <h2>Подтвердите присутствие</h2>
+
+      <p class="rsvp-intro">
+        Пожалуйста, укажите, кто сможет разделить
+        с нами этот особенный день.
+      </p>
+
+      <form id="rsvp-form">
+
+        <div id="guest-list"></div>
+
+        <label class="comment-label" for="rsvp-comment">
+          Комментарий
+        </label>
+
+        <textarea
+          class="comment-field"
+          id="rsvp-comment"
+          placeholder="Если хотите что-то нам сообщить..."
+        ></textarea>
+
+        <button class="submit-button" id="submit-button" type="submit">
+          Отправить ответ
+        </button>
+
+        <div class="rsvp-status" id="rsvp-status" aria-live="polite"></div>
+
+      </form>
+    </section>
+
+    <div class="signature">
+      С любовью,<br>
+      Александр и Мария
+    </div>
+
+    <div class="connection-status" id="connection-status"></div>
 
   </main>
 
@@ -175,18 +346,17 @@
     const SUPABASE_PUBLISHABLE_KEY =
       'sb_publishable__sjc8LE7R5OdtitcPHKMJw_wl5eM8gu';
 
-    // Проверка библиотеки
-
     if (!window.supabase) {
       throw new Error('Библиотека Supabase не загружена');
     }
-
-    // Создание подключения
 
     const supabaseClient = window.supabase.createClient(
       SUPABASE_URL,
       SUPABASE_PUBLISHABLE_KEY
     );
+
+    let invitationToken = null;
+    let invitationGuests = [];
 
     // Форматирование даты
 
@@ -202,22 +372,78 @@
       }).format(date);
     }
 
+    // Отображение гостей
+
+    function renderGuests(guests) {
+      const guestList = document.getElementById('guest-list');
+
+      guestList.replaceChildren();
+
+      guests.forEach((guest, index) => {
+        const guestItem = document.createElement('div');
+        guestItem.className = 'guest-item';
+
+        const guestName = document.createElement('span');
+        guestName.className = 'guest-name';
+        guestName.textContent =
+          [guest.first_name, guest.last_name].filter(Boolean).join(' ');
+
+        const options = document.createElement('div');
+        options.className = 'guest-options';
+
+        const radioName = 'guest-' + index;
+
+        const currentStatus = guest.rsvp_status;
+
+        const yesChecked = currentStatus === 'confirmed';
+        const noChecked = currentStatus === 'declined';
+
+        options.innerHTML = `
+          <label class="guest-option">
+            <input
+              type="radio"
+              name="${radioName}"
+              value="yes"
+              ${yesChecked ? 'checked' : ''}
+              required
+            >
+            <span>Приду</span>
+          </label>
+
+          <label class="guest-option">
+            <input
+              type="radio"
+              name="${radioName}"
+              value="no"
+              ${noChecked ? 'checked' : ''}
+              required
+            >
+            <span>Не смогу</span>
+          </label>
+        `;
+
+        guestItem.appendChild(guestName);
+        guestItem.appendChild(options);
+
+        guestList.appendChild(guestItem);
+      });
+
+      document.getElementById('rsvp-section').style.display = 'block';
+    }
+
     // Загрузка приглашения
 
     async function loadInvitation() {
-
       const params = new URLSearchParams(window.location.search);
       const token = params.get('token');
 
-      // Если персонального токена нет,
-      // оставляем демонстрационные данные.
-
       if (!token) return;
+
+      invitationToken = token;
 
       const status = document.getElementById('connection-status');
 
       try {
-
         const { data, error } = await supabaseClient.rpc(
           'get_invitation',
           {
@@ -233,7 +459,7 @@
 
         const event = data.event;
 
-        // Дата мероприятия
+        // Дата
 
         if (event.event_date) {
           const date = formatDate(event.event_date);
@@ -242,33 +468,132 @@
           document.getElementById('details-date').textContent = date;
         }
 
-        // Время мероприятия
+        // Время
 
         if (event.event_time) {
           document.getElementById('event-time').textContent =
             String(event.event_time).slice(0, 5);
         }
 
-        // Место проведения
+        // Место
 
         if (event.venue_name) {
           document.getElementById('event-venue').textContent =
             event.venue_name;
         }
 
+        // Гости
+
+        if (!Array.isArray(data.guests) || data.guests.length === 0) {
+          throw new Error('В приглашении не найдены гости');
+        }
+
+        invitationGuests = data.guests;
+
+        renderGuests(invitationGuests);
+
         status.textContent = '';
 
         console.log('EventFlow: приглашение загружено', data);
 
       } catch (error) {
-
         console.error('EventFlow error:', error);
 
         status.textContent =
-          'Не удалось загрузить данные приглашения. Проверьте ссылку.';
-
+          'Не удалось загрузить приглашение. Проверьте ссылку.';
       }
     }
+
+    // Отправка RSVP
+
+    async function submitRSVP(event) {
+      event.preventDefault();
+
+      const button = document.getElementById('submit-button');
+      const status = document.getElementById('rsvp-status');
+
+      status.textContent = '';
+      status.className = 'rsvp-status';
+
+      const responses = [];
+
+      for (let i = 0; i < invitationGuests.length; i++) {
+        const guest = invitationGuests[i];
+
+        const selected = document.querySelector(
+          'input[name="guest-' + i + '"]:checked'
+        );
+
+        if (!selected) {
+          status.textContent = 'Пожалуйста, выберите ответ для каждого гостя.';
+          status.classList.add('error');
+          return;
+        }
+
+        responses.push({
+          guest_id: guest.id,
+          attending: selected.value === 'yes'
+        });
+      }
+
+      const comment = document.getElementById('rsvp-comment').value.trim();
+
+      button.disabled = true;
+      button.textContent = 'Отправляем...';
+
+      try {
+        const { data, error } = await supabaseClient.rpc(
+          'submit_rsvp',
+          {
+            p_token: invitationToken,
+            p_responses: responses,
+            p_comment: comment || null
+          }
+        );
+
+        if (error) throw error;
+
+        if (!data || data.success !== true) {
+          throw new Error(
+            data?.message || 'Не удалось сохранить ответ'
+          );
+        }
+
+        status.textContent =
+          'Спасибо! Ваш ответ успешно сохранён.';
+
+        status.classList.add('success');
+
+        console.log('EventFlow: RSVP сохранён', data);
+
+      } catch (error) {
+        console.error('EventFlow RSVP error:', error);
+
+        if (
+          error.message &&
+          error.message.toLowerCase().includes('deadline')
+        ) {
+          status.textContent =
+            'К сожалению, срок подтверждения присутствия уже завершён.';
+        } else {
+          status.textContent =
+            'Не удалось отправить ответ. Попробуйте ещё раз.';
+        }
+
+        status.classList.add('error');
+
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Отправить ответ';
+      }
+    }
+
+    // Обработчик формы
+
+    document.getElementById('rsvp-form').addEventListener(
+      'submit',
+      submitRSVP
+    );
 
     // Запуск
 
