@@ -7,10 +7,10 @@
 Если нужно понять, что происходит в проекте и что делать дальше:
 
 1. **[Дорожная карта](./DEMO_RELEASE_PLAN.md)** — главный график работ, текущий этап, приоритеты, критерии готовности и отложенные задачи.
-2. **[Контрольная точка публичной Demo](https://github.com/PelzA83/eventflow-demo/blob/main/docs/PROJECT_STATUS.md)** — что реализовано и что подтверждено пользовательской проверкой в опубликованной демонстрации.
+2. **[Контрольная точка публичной Demo](https://github.com/pelzdesign/eventflow-demo/blob/main/docs/PROJECT_STATUS.md)** — что реализовано и что подтверждено пользовательской проверкой в опубликованной демонстрации.
 3. **[Спецификации](./specifications/README.md)** — утверждённые продуктовые и архитектурные требования.
-4. **[Карта документации и источников](https://github.com/PelzA83/eventflow-project-docs/blob/main/PROJECT_MAP.md)** — полный перечень репозиториев, назначение документов и правила выбора актуального источника.
-5. **[Дополнительная проектная документация](https://github.com/PelzA83/eventflow-project-docs)** — архитектурные материалы, аудиты, SQL-архив и история решений.
+4. **[Карта документации и источников](https://github.com/pelzdesign/eventflow-project-docs/blob/main/PROJECT_MAP.md)** — полный перечень репозиториев, назначение документов и правила выбора актуального источника.
+5. **[Дополнительная проектная документация](https://github.com/pelzdesign/eventflow-project-docs)** — архитектурные материалы, аудиты, SQL-архив и история решений.
 
 ## Где искать ответы
 
@@ -18,7 +18,7 @@
 |---|---|
 | Какой сейчас этап и что делать следующим? | [DEMO_RELEASE_PLAN.md](./DEMO_RELEASE_PLAN.md) |
 | Какой функционал нужен для ближайшего показа? | Разделы «Обязательный функционал» и «Критерии демонстрации» в дорожной карте |
-| Что реально работает в публичной Demo? | [eventflow-demo/docs/PROJECT_STATUS.md](https://github.com/PelzA83/eventflow-demo/blob/main/docs/PROJECT_STATUS.md) |
+| Что реально работает в публичной Demo? | [eventflow-demo/docs/PROJECT_STATUS.md](https://github.com/pelzdesign/eventflow-demo/blob/main/docs/PROJECT_STATUS.md) |
 | Какие требования согласованы для платформы? | [specifications/README.md](./specifications/README.md) и актуальная спецификация |
 | Где архитектурные схемы и модель данных? | Раздел 02_architecture в eventflow-project-docs |
 | Какие аудиты уже проводились? | Раздел 03_audits в eventflow-project-docs |
